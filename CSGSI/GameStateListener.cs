@@ -86,8 +86,28 @@ namespace CSGSI
             }
             Port = Convert.ToInt32(PortMatch.Groups[1].Value);
 
-            _listener = new HttpListener();
-            _listener.Prefixes.Add(URI);
+            this.CreateListener();
+        }
+
+        /// <summary>
+        /// In any case, create a listener with redudant valid prefixes
+        /// </summary>
+        private void CreateListener() 
+        {
+            if (_listener == null)
+            {
+                _listener = new HttpListener();
+            }
+
+            string[] redudantPrefixes = new string[2] { "127.0.0.1", "localhost" };
+
+            foreach (string prefix in redudantPrefixes)
+            {
+                if (!_listener.Prefixes.Contains(prefix))
+                {
+                    _listener.Prefixes.Add($"http://{prefix}:{this.Port}/");
+                }
+            }
         }
 
         /// <summary>
@@ -99,8 +119,8 @@ namespace CSGSI
             if (Running)
                 return false;
 
-            _listener = new HttpListener();
-            _listener.Prefixes.Add("http://localhost:" + Port + "/");
+            this.CreateListener();
+            
             Thread ListenerThread = new Thread(new ThreadStart(Run));
             try
             {
