@@ -21,10 +21,11 @@ namespace CSGSI
     /// </summary>
     public class GameStateListener : IGameStateListener
     {
-        private AutoResetEvent _waitForConnection = new AutoResetEvent(false);
+        private readonly AutoResetEvent _waitForConnection = new AutoResetEvent(false);
         private GameState _currentGameState;
         private HttpListener _listener;
 
+        #region Properties - Public
         /// <summary>
         /// The most recently received GameState.
         /// </summary>
@@ -54,14 +55,16 @@ namespace CSGSI
         /// Gets a value indicating if the listening process is running.
         /// </summary>
         public bool Running { get; private set; } = false;
+        #endregion
 
         /// <summary>
         /// Is raised after a new GameState has been received.
         /// </summary>
         public event NewGameStateHandler NewGameState = delegate { };
 
+        #region Constructor
         /// <summary>
-        /// A GameStateListener that listens for connections to http://localhost:&lt;Port&gt;/.
+        /// A GameStateListener that listens for connections
         /// </summary>
         /// <param name="Port"></param>
         public GameStateListener(int Port)
@@ -84,10 +87,13 @@ namespace CSGSI
             {
                 throw new ArgumentException("Not a valid URI: " + URI);
             }
-            Port = Convert.ToInt32(PortMatch.Groups[1].Value);
+            this.Port = Convert.ToInt32(PortMatch.Groups[1].Value);
 
             this.CreateListener();
+
+            _listener.Prefixes.Add(URI);
         }
+        #endregion
 
         /// <summary>
         /// In any case, create a listener with redudant valid prefixes
@@ -319,7 +325,7 @@ namespace CSGSI
         /// </summary>
         public event RoundBeginHandler RoundBegin;
 
-        private void RaiseEvent(MulticastDelegate handler, object data)
+        private static void RaiseEvent(MulticastDelegate handler, object data)
         {
             foreach (Delegate d in handler.GetInvocationList())
             {
@@ -334,7 +340,7 @@ namespace CSGSI
             }
         }
 
-        private void RaiseEvent(MulticastDelegate handler)
+        private static void RaiseEvent(MulticastDelegate handler)
         {
             foreach (Delegate d in handler.GetInvocationList())
             {
